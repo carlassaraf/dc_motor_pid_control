@@ -9,11 +9,15 @@ class PIDPlotter:
         self._width = width
         self._height = height
 
+        # Tiempo de muestreo
+        self._ts = 20e-3
+
         # Parametros para graficar
         self._reference_data = [0.0]
         self._position_data = [0.0]
         self._pwm_data = [0.0]
         self._error_data = [0.0]
+        self._time = [0.0]
 
         # Puerto serial
         self._port = None
@@ -47,7 +51,7 @@ class PIDPlotter:
                 # Ventana de plot
                 with dpg.plot(label="Posicion y Referencia del Motor", height=-1, width=-1):
                     dpg.add_plot_legend()
-                    dpg.add_plot_axis(dpg.mvXAxis, label="Tiempo")
+                    dpg.add_plot_axis(dpg.mvXAxis, label="Tiempo", tag="position_time_axis")
                     with dpg.plot_axis(dpg.mvYAxis, label="Grados"):
                         dpg.add_line_series([], [], label="Referencia", tag="reference_plot")
                         dpg.add_line_series([], [], label="Posición", tag="position_plot")
@@ -56,7 +60,7 @@ class PIDPlotter:
             with dpg.child_window(tag="pwm_window"):
                 with dpg.plot(label="PWM y Error", height=-1, width=-1):
                     dpg.add_plot_legend()
-                    dpg.add_plot_axis(dpg.mvXAxis, label="Tiempo")
+                    dpg.add_plot_axis(dpg.mvXAxis, label="Tiempo", tag="pwm_time_axis")
                     with dpg.plot_axis(dpg.mvYAxis, label="PWM/Error"):
                         dpg.add_line_series([], [], label="PWM", tag="pwm_plot")
                         dpg.add_line_series([], [], label="Error", tag="error_plot")
@@ -75,6 +79,17 @@ class PIDPlotter:
                     data = self._port.readline().decode().strip()
                     data = json.loads(data)
                     # Veo si hay datos para actualizar
+                    self._position_data.append(data["position"])
+                    self._reference_data.append(data["reference"])
+                    self._error_data.append(data["error"])
+                    self._time.append(self._time[-1] + self._ts)
+                    # Veo si me excedi de las muestras
+                    if len(self._time) > self._max_points:
+                        # Elimino el primer punto
+                        self._position_data = self._position_data[1:]
+                        self._reference_data = self._reference_data[1:]
+                        self._error_data = self._error_data[1:]
+                        self._time = self._time[1:]
 
             self._update_plot()
             self._refresh_ports()
@@ -83,10 +98,13 @@ class PIDPlotter:
         dpg.destroy_context()
 
     def _update_plot(self):
-        dpg.set_value("reference_plot", [[0.0], [0.0]])
-        dpg.set_value("position_plot", [[0.0], [0.0]])
-        dpg.set_value("pwm_plot", [[0.0], [0.0]])
-        dpg.set_value("error_plot", [[0.0], [0.0]])
+        dpg.set_value("reference_plot", [self._time, self._reference_data])
+        dpg.set_value("position_plot", [self._time, self._position_data])
+        dpg.set_value("pwm_plot", [self._time, self._pwm_data])
+        dpg.set_value("error_plot", [self._time, self._error_data])
+        # Ajusto los limites horizontales
+        dpg.set_axis_limits("position_time_axis", min(self._time), max(self._time))
+        dpg.set_axis_limits("pwm_time_axis", min(self._time), max(self._time))
 
     def _resize_window_callback(self, sender, app_data):
         """
