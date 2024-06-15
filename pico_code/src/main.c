@@ -1,31 +1,20 @@
 #include <stdio.h>
 #include "pico/stdlib.h"
 
-#include "hardware/adc.h"
-
 #include "app_tasks.h"
-
-// Creo un repeating timer
-static repeating_timer_t timer;
 
 int main(void) {
 
+    // Array para enviar a la interfaz
+    char str[128] = {0};
+
     stdio_init_all();
+    sleep_ms(1000);
 
-    // Inicializacion del ADC
-    adc_init();
-    adc_gpio_init(26);
-    adc_gpio_init(27);
+    // Inicializo perifericos
+    mcu_init();
 
-    // Configuro un timer para asegurar la frecuencia de muestreo
-    add_repeating_timer_ms(
-        20,
-        adc_convertion,
-        NULL,
-        &timer
-    );
-
-    while (true) {
+    while(true) {
         // Veo si termino la conversion
         if(sampling_done) {
             // Leo la referencia
@@ -33,6 +22,19 @@ int main(void) {
             int16_t reference = adc_read();
             // Calculo el nuevo error
             error_curr = reference - sample_curr;
+
+            // Mando datos
+
+            sprintf(
+                str,
+                "{\"position\":%f,\"reference\":%f,\"error\":%f}\n",
+                sample_curr * 360.0 / 4095.0,
+                reference * 360.0 / 4095.0,
+                error_curr * 360.0 / 4095.0
+            );
+
+            printf(str);
+
             sampling_done = false;
         }
     }
