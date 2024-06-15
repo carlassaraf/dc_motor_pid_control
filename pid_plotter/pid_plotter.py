@@ -1,6 +1,7 @@
 import dearpygui.dearpygui as dpg
 import serial.tools.list_ports
 import serial
+import json
 
 
 class PIDPlotter:
@@ -14,12 +15,15 @@ class PIDPlotter:
         self._pwm_data = [0.0]
         self._error_data = [0.0]
 
+        # Puerto serial
+        self._port = None
+
+        # Maxima cantidad de puntos para graficar
+        self._max_points = 100
+
         # Configurar DearPyGUI
         dpg.create_context()
         dpg.create_viewport(title="PID Plotter", width=width, height=height)
-
-        # Puerto serial
-        self._port = None
 
         # Configuro una ventana para el ploteo del PID
         with dpg.window(label="App", tag="app_window"):
@@ -37,7 +41,7 @@ class PIDPlotter:
                     dpg.add_text("No se encontraron puertos seriales.")
 
                 dpg.add_text("", tag="serial_status")
-                
+
             # Vista para el grafico del PID
             with dpg.child_window(tag="position_window"):
                 # Ventana de plot
@@ -64,6 +68,14 @@ class PIDPlotter:
 
     def run(self):
         while dpg.is_dearpygui_running():
+            # Verifico los datos del puerto serie
+            if self._port:
+                if self._port.in_waiting > 0:
+                    # Leo y decodifico el JSON
+                    data = self._port.readline().decode().strip()
+                    data = json.loads(data)
+                    # Veo si hay datos para actualizar
+
             self._update_plot()
             self._refresh_ports()
             dpg.render_dearpygui_frame()
