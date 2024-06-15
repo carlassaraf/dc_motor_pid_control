@@ -28,8 +28,8 @@ int main(void) {
             sprintf(
                 str,
                 "{\"position\":%f,\"reference\":%f,\"error\":%f}\n",
-                sample_curr * 360.0 / 4095.0,
-                reference * 360.0 / 4095.0,
+                sample_curr * 360.0 / 4095.0 - 180.0,
+                reference * 360.0 / 4095.0 - 180.0,
                 error_curr * 360.0 / 4095.0
             );
 
