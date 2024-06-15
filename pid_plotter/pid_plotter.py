@@ -51,19 +51,28 @@ class PIDPlotter:
                 # Ventana de plot
                 with dpg.plot(label="Posicion y Referencia del Motor", height=-1, width=-1):
                     dpg.add_plot_legend()
-                    dpg.add_plot_axis(dpg.mvXAxis, label="Tiempo", tag="position_time_axis")
-                    with dpg.plot_axis(dpg.mvYAxis, label="Grados"):
+                    dpg.add_plot_axis(dpg.mvXAxis, label="Tiempo [s]", tag="position_time_axis")
+
+                    with dpg.plot_axis(dpg.mvYAxis, label="Referencia [deg]", tag="reference_axis"):
                         dpg.add_line_series([], [], label="Referencia", tag="reference_plot")
+                        dpg.set_axis_limits("reference_axis", -180.0, 180.0)
+
+                    with dpg.plot_axis(dpg.mvYAxis, label="Posicion [deg]", tag="position_axis"):
                         dpg.add_line_series([], [], label="Posición", tag="position_plot")
+                        dpg.set_axis_limits("position_axis", -180.0, 180.0)
 
             # Vista para el PWM y el Error
             with dpg.child_window(tag="pwm_window"):
                 with dpg.plot(label="PWM y Error", height=-1, width=-1):
                     dpg.add_plot_legend()
-                    dpg.add_plot_axis(dpg.mvXAxis, label="Tiempo", tag="pwm_time_axis")
-                    with dpg.plot_axis(dpg.mvYAxis, label="PWM/Error"):
+                    dpg.add_plot_axis(dpg.mvXAxis, label="Tiempo [s]", tag="pwm_time_axis")
+                    
+                    with dpg.plot_axis(dpg.mvYAxis, label="PWM [%]", tag="pwm_axis"):
                         dpg.add_line_series([], [], label="PWM", tag="pwm_plot")
+                    
+                    with dpg.plot_axis(dpg.mvYAxis, label="Error [deg]", tag="error_axis"):
                         dpg.add_line_series([], [], label="Error", tag="error_plot")
+                        dpg.set_axis_limits("error_axis", -180.0, 180.0)
 
         dpg.setup_dearpygui()
         dpg.show_viewport()
@@ -105,6 +114,7 @@ class PIDPlotter:
         # Ajusto los limites horizontales
         dpg.set_axis_limits("position_time_axis", min(self._time), max(self._time))
         dpg.set_axis_limits("pwm_time_axis", min(self._time), max(self._time))
+        dpg.set_axis_limits("error_axis", min(self._error_data), max(self._error_data))
 
     def _resize_window_callback(self, sender, app_data):
         """
