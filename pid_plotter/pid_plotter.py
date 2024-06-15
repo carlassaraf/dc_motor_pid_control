@@ -80,26 +80,34 @@ class PIDPlotter:
         self._resize_window_callback(None, None)
 
     def run(self):
+        """
+        Corre la interfaz en loop.
+        """
         while dpg.is_dearpygui_running():
             # Verifico los datos del puerto serie
             if self._port:
-                if self._port.in_waiting > 0:
-                    # Leo y decodifico el JSON
-                    data = self._port.readline().decode().strip()
-                    data = json.loads(data)
-                    # Veo si hay datos para actualizar
-                    self._position_data.append(data["position"])
-                    self._reference_data.append(data["reference"])
-                    self._error_data.append(data["error"])
-                    self._time.append(self._time[-1] + self._ts)
-                    # Veo si me excedi de las muestras
-                    if len(self._time) > self._max_points:
-                        # Elimino el primer punto
-                        self._position_data = self._position_data[1:]
-                        self._reference_data = self._reference_data[1:]
-                        self._error_data = self._error_data[1:]
-                        self._time = self._time[1:]
-
+                try:
+                    if self._port.in_waiting > 0:
+                        # Leo y decodifico el JSON
+                        data = self._port.readline().decode().strip()
+                        data = json.loads(data)
+                        # Veo si hay datos para actualizar
+                        self._position_data.append(data["position"])
+                        self._reference_data.append(data["reference"])
+                        self._error_data.append(data["error"])
+                        self._time.append(self._time[-1] + self._ts)
+                        # Veo si me excedi de las muestras
+                        if len(self._time) > self._max_points:
+                            # Elimino el primer punto
+                            self._position_data = self._position_data[1:]
+                            self._reference_data = self._reference_data[1:]
+                            self._error_data = self._error_data[1:]
+                            self._time = self._time[1:]
+                
+                except:
+                    pass
+            
+            # Actualizo con los puntos que tengo
             self._update_plot()
             self._refresh_ports()
             dpg.render_dearpygui_frame()
@@ -107,6 +115,10 @@ class PIDPlotter:
         dpg.destroy_context()
 
     def _update_plot(self):
+        """
+        Actualiza los graficos.
+        """
+        # Actualiza cada grafico
         dpg.set_value("reference_plot", [self._time, self._reference_data])
         dpg.set_value("position_plot", [self._time, self._position_data])
         dpg.set_value("pwm_plot", [self._time, self._pwm_data])
@@ -130,6 +142,9 @@ class PIDPlotter:
         dpg.set_item_height("pwm_window", 3 * height // 7)
 
     def _refresh_ports(self):
+        """
+        Callback que refresca la lista de puertos.
+        """
         # Listar los puertos seriales disponibles y crear el combo box
         ports = [port.device for port in serial.tools.list_ports.comports()]
         if ports:
