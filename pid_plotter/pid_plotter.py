@@ -182,13 +182,16 @@ class PIDPlotter:
                 dpg.set_value(item="serial_status", value="Error conectando al puerto!")
 
     def _send_pid_constants(self, app_data, user_data):
-        
-        data = {
-            "kp": dpg.get_value("Kp"),
-            "ki": dpg.get_value("Ki"),
-            "kd": dpg.get_value("Kd")
-        }
+        """
+        Manda por el puerto las constantes para el PID
+        """
+        if self._port:
 
-        print(data)
-        # self._port.write(f"{kp},{ki},{kd}\n".encode())
+            data = {
+                "kp": dpg.get_value("Kp"),
+                "ki": dpg.get_value("Ki"),
+                "kd": dpg.get_value("Kd")
+            }
+
+            self._port.write(f"{data}\n".encode())
         
