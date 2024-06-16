@@ -74,6 +74,19 @@ class PIDPlotter:
                         dpg.add_line_series([], [], label="Error", tag="error_plot")
                         dpg.set_axis_limits("error_axis", -180.0, 180.0)
 
+            # Vista para controles de PID
+            with dpg.child_window(tag="pid_window"):
+                with dpg.group(horizontal=True):
+                    # Controles de PID
+                    dpg.add_input_float(label="Kp", tag="Kp")
+                    dpg.add_input_float(label="Ki", tag="Ki")
+                    dpg.add_input_float(label="Kd", tag="Kd")
+                    dpg.add_button(label="Enviar PID", callback=self._send_pid_constants)
+                    # Ajusto los anchos
+                    dpg.set_item_width("Kp", 250)
+                    dpg.set_item_width("Ki", 250)
+                    dpg.set_item_width("Kd", 250)
+
         dpg.setup_dearpygui()
         dpg.show_viewport()
         # Configurar el tamaño inicial de la ventana
@@ -135,11 +148,13 @@ class PIDPlotter:
         # Obtengo las dimensiones del viewport y las configuro para la ventana
         width, height = dpg.get_viewport_client_width() - 22.5, dpg.get_viewport_client_height() - 50
         dpg.set_item_width("serial_window", width)
-        dpg.set_item_height("serial_window", height // 7)
+        dpg.set_item_height("serial_window", 1.25 * height // 10)
         dpg.set_item_width("position_window", width)
-        dpg.set_item_height("position_window", 3 * height // 7)
+        dpg.set_item_height("position_window", 3.75 * height // 10)
         dpg.set_item_width("pwm_window", width)
-        dpg.set_item_height("pwm_window", 3 * height // 7)
+        dpg.set_item_height("pwm_window", 3.75 * height // 10)
+        dpg.set_item_width("pid_window", width)
+        dpg.set_item_height("pid_window", height // 10)
 
     def _refresh_ports(self):
         """
@@ -165,3 +180,15 @@ class PIDPlotter:
                 dpg.set_value(item="serial_status", value=f"Puerto {app_data} conectado con exito!")
             except:
                 dpg.set_value(item="serial_status", value="Error conectando al puerto!")
+
+    def _send_pid_constants(self, app_data, user_data):
+        
+        data = {
+            "kp": dpg.get_value("Kp"),
+            "ki": dpg.get_value("Ki"),
+            "kd": dpg.get_value("Kd")
+        }
+
+        print(data)
+        # self._port.write(f"{kp},{ki},{kd}\n".encode())
+        
