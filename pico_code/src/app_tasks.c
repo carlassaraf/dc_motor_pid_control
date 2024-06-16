@@ -1,5 +1,7 @@
 #include <malloc.h>
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 
 #include "app_tasks.h"
 
@@ -36,6 +38,25 @@ void mcu_init(void) {
         NULL,
         &timer
     );
+}
+
+float json_get_value_from_key(char *json, char *key) {
+    // Busco la posicion del key
+    char *key_pos = strstr(json, key);
+    // No se encontro la key
+    if (key_pos == NULL) { return 0.0; }
+
+    // Encontrar la posición del colon (:) después de la clave
+    char *colon_pos = strchr(key_pos, ':');
+    // No se encontro
+    if (colon_pos == NULL) { return 0.0; }
+
+    // Saltar el colon y cualquier espacio en blanco
+    do { colon_pos++; }
+    while(*colon_pos == ' ' || *colon_pos == '\t' || *colon_pos == '\n');
+    
+    // Extraer el valor
+    return atof(colon_pos);
 }
 
 /**

@@ -14,3 +14,4 @@ extern int16_t error_curr;
 
 // Prototipos
 void mcu_init(void);
+float json_get_value_from_key(char *json, char *key);
