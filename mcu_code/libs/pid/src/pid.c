@@ -24,7 +24,9 @@ bool sampling_callback(repeating_timer_t *t) {
   // Add error for integral
   acc_error += curr_err;
   // PID formula
-  float output = KP * curr_err + KI * acc_error * DT + KD * (curr_err - prev_error) / DT;
+  float output = KP * curr_err + KI * acc_error * DT;
+  // Add derivative if there was a previous error (avoid initial derivative kick)
+  output += (prev_error == 0.0)? 0 : KD * (curr_err - prev_error) / DT;
   // Update previous error
   prev_error = curr_err;
   // Check boundaries
@@ -64,6 +66,29 @@ void pid_init(pid_config_t *config) {
  */
 float pid_get_output(void) {
   return pid_values.out;
+}
+
+/**
+ * @brief Update PID constants
+ * @param kp proportional constant
+ * @param ki integral constant
+ * @param kd derivative constant
+ */
+void pid_update_constants(float kp, float ki, float kd) {
+  pid_config->kp = kp;
+  pid_config->ki = ki;
+  pid_config->kd = kd;
+}
+
+/**
+ * @brief Update PID sampling time
+ * @param ts sampling time in ms
+ */
+void pid_update_sampling_time(float ts) {
+  pid_config->ts = ts;
+  // Update callback
+  cancel_repeating_timer(&timer);
+  add_repeating_timer_ms(-(pid_config->ts), sampling_callback, NULL, &timer);
 }
 
 /**

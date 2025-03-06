@@ -45,6 +45,8 @@ typedef struct {
 
 void pid_init(pid_config_t *pid_config);
 float pid_get_output(void);
+void pid_update_constants(float kp, float ki, float kd);
+void pid_update_sampling_time(float ts);
 pid_to_plotter_t pid_get_plot_data(void);
 
 #endif
