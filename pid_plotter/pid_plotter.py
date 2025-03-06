@@ -53,13 +53,12 @@ class PIDPlotter:
                     dpg.add_plot_legend()
                     dpg.add_plot_axis(dpg.mvXAxis, label="Tiempo [s]", tag="position_time_axis")
 
-                    with dpg.plot_axis(dpg.mvYAxis, label="Referencia [deg]", tag="reference_axis"):
+                    with dpg.plot_axis(dpg.mvYAxis, label="[deg]", tag="degree_axis"):
                         dpg.add_line_series([], [], label="Referencia", tag="reference_plot")
-                        dpg.set_axis_limits("reference_axis", -180.0, 180.0)
-
-                    with dpg.plot_axis(dpg.mvYAxis, label="Posicion [deg]", tag="position_axis"):
                         dpg.add_line_series([], [], label="Posición", tag="position_plot")
-                        dpg.set_axis_limits("position_axis", -180.0, 180.0)
+                        dpg.add_line_series([], [], label="Error", tag="error_plot")
+                        dpg.set_axis_limits("degree_axis", -180.0, 180.0)
+
 
             # Vista para el PWM y el Error
             with dpg.child_window(tag="pwm_window"):
@@ -71,10 +70,6 @@ class PIDPlotter:
                         dpg.add_line_series([], [], label="PWM", tag="pwm_plot")
                         dpg.set_axis_limits("pwm_axis", 0, 100)
                     
-                    with dpg.plot_axis(dpg.mvYAxis, label="Error [deg]", tag="error_axis"):
-                        dpg.add_line_series([], [], label="Error", tag="error_plot")
-                        dpg.set_axis_limits("error_axis", -180.0, 180.0)
-
             # Vista para controles de PID
             with dpg.child_window(tag="pid_window"):
                 with dpg.group(horizontal=True):
