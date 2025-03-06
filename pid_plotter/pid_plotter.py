@@ -19,6 +19,11 @@ class PIDPlotter:
         self._error_data = [0.0]
         self._time = [0.0]
 
+        # Constantes PID
+        self._kp = 0.0
+        self._ki = 0.0
+        self._kd = 0.0
+
         # Puerto serial
         self._port = None
 
@@ -68,7 +73,7 @@ class PIDPlotter:
                     
                     with dpg.plot_axis(dpg.mvYAxis, label="PWM [%]", tag="pwm_axis"):
                         dpg.add_line_series([], [], label="PWM", tag="pwm_plot")
-                        dpg.set_axis_limits("pwm_axis", 0, 100)
+                        dpg.set_axis_limits("pwm_axis", -5, 105)
                     
             # Vista para controles de PID
             with dpg.child_window(tag="pid_window"):
@@ -106,6 +111,9 @@ class PIDPlotter:
                         self._error_data.append(data["error"])
                         self._pwm_data.append(data["pwm"])
                         self._time.append(self._time[-1] + self._ts)
+                        self._kp = data["kp"]
+                        self._ki = data["ki"]
+                        self._kd = data["kd"]
                         # Veo si me excedi de las muestras
                         if len(self._time) > self._max_points:
                             # Elimino el primer punto
@@ -134,6 +142,10 @@ class PIDPlotter:
         dpg.set_value("position_plot", [self._time, self._position_data])
         dpg.set_value("pwm_plot", [self._time, self._pwm_data])
         dpg.set_value("error_plot", [self._time, self._error_data])
+        # Actualizo valores de constantes de PID
+        dpg.set_value("Kp", self._kp)
+        dpg.set_value("Ki", self._ki)
+        dpg.set_value("Kd", self._kd)
         # Ajusto los limites horizontales
         dpg.set_axis_limits("position_time_axis", min(self._time), max(self._time))
         dpg.set_axis_limits("pwm_time_axis", min(self._time), max(self._time))
