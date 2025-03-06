@@ -23,6 +23,8 @@ bool sampling_callback(repeating_timer_t *t) {
   acc_error += curr_err;
   // PID formula
   float output = KP * curr_err + KI * acc_error * DT + KD * (curr_err - prev_error) / DT;
+  // Update previous error
+  prev_error = curr_err;
   // Check boundaries
   if(output > pid_config->out_max) { pid_values.out = pid_config->out_max; }
   else if(output < pid_config->out_min) { pid_values.out = pid_config->out_min; }
