@@ -40,7 +40,8 @@ bool sampling_callback(repeating_timer_t *t) {
     .ref = pid_config->ref,
     .pos = new_sample,
     .err = curr_err,
-    .out = pid_values.out
+    .out = pid_values.out,
+    .ts = pid_config->ts / 1000000
   };
 
   pid_data = d;

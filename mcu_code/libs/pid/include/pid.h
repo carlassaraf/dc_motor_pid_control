@@ -27,6 +27,7 @@ typedef struct {
   float pos;
   float err;
   float out;
+  float ts;
 } pid_to_plotter_t;
 
 // Macros
