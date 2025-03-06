@@ -69,6 +69,7 @@ class PIDPlotter:
                     
                     with dpg.plot_axis(dpg.mvYAxis, label="PWM [%]", tag="pwm_axis"):
                         dpg.add_line_series([], [], label="PWM", tag="pwm_plot")
+                        dpg.set_axis_limits("pwm_axis", 0, 100)
                     
                     with dpg.plot_axis(dpg.mvYAxis, label="Error [deg]", tag="error_axis"):
                         dpg.add_line_series([], [], label="Error", tag="error_plot")
@@ -108,6 +109,7 @@ class PIDPlotter:
                         self._position_data.append(data["position"])
                         self._reference_data.append(data["reference"])
                         self._error_data.append(data["error"])
+                        self._pwm_data.append(data["pwm"])
                         self._time.append(self._time[-1] + self._ts)
                         # Veo si me excedi de las muestras
                         if len(self._time) > self._max_points:
@@ -115,6 +117,7 @@ class PIDPlotter:
                             self._position_data = self._position_data[1:]
                             self._reference_data = self._reference_data[1:]
                             self._error_data = self._error_data[1:]
+                            self._pwm_data = self._pwm_data[1:]
                             self._time = self._time[1:]
                 
                 except:
@@ -139,7 +142,6 @@ class PIDPlotter:
         # Ajusto los limites horizontales
         dpg.set_axis_limits("position_time_axis", min(self._time), max(self._time))
         dpg.set_axis_limits("pwm_time_axis", min(self._time), max(self._time))
-        dpg.set_axis_limits("error_axis", min(self._error_data), max(self._error_data))
 
     def _resize_window_callback(self, sender, app_data):
         """
