@@ -37,7 +37,6 @@ set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_C_FLAGS_DEBUG "-O0 -g3" CACHE STRING "Debug C Flags" FORCE)
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g3" CACHE STRING "Debug C++ Flags" FORCE)
 
-
 # Add executable. Default name is the project name, version 0.1
 
 add_executable(mcu_code mcu_code.c)
@@ -52,6 +51,7 @@ pico_enable_stdio_usb(mcu_code 1)
 # Aditional libraries
 add_subdirectory(libs/l298)
 add_subdirectory(libs/pid)
+add_subdirectory(libs/as5600)
 
 # Add the standard library to the build
 target_link_libraries(mcu_code
@@ -59,6 +59,7 @@ target_link_libraries(mcu_code
     hardware_adc
     l298
     pid
+    as5600
 )
 
 # Add the standard include files to the build
