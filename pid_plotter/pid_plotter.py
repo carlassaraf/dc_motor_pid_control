@@ -114,6 +114,7 @@ class PIDPlotter:
                         self._kp = data["kp"]
                         self._ki = data["ki"]
                         self._kd = data["kd"]
+                        self._ts = data["ts"]
                         # Veo si me excedi de las muestras
                         if len(self._time) > self._max_points:
                             # Elimino el primer punto
