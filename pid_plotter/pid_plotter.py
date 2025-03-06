@@ -10,7 +10,7 @@ class PIDPlotter:
         self._height = height
 
         # Tiempo de muestreo
-        self._ts = 20e-3
+        self._ts = 0.0
 
         # Parametros para graficar
         self._reference_data = [0.0]
@@ -83,10 +83,13 @@ class PIDPlotter:
                     dpg.add_input_float(label="Ki", tag="Ki")
                     dpg.add_input_float(label="Kd", tag="Kd")
                     dpg.add_button(label="Enviar PID", callback=self._send_pid_constants)
+                    dpg.add_input_int(label="Ts [ms]", tag="Ts")
+                    dpg.add_button(label="Cambiar Ts", callback=self._send_ts)
                     # Ajusto los anchos
-                    dpg.set_item_width("Kp", 250)
-                    dpg.set_item_width("Ki", 250)
-                    dpg.set_item_width("Kd", 250)
+                    dpg.set_item_width("Kp", 200)
+                    dpg.set_item_width("Ki", 200)
+                    dpg.set_item_width("Kd", 200)
+                    dpg.set_item_width("Ts", 200)
 
         dpg.setup_dearpygui()
         dpg.show_viewport()
@@ -147,6 +150,7 @@ class PIDPlotter:
         dpg.set_value("Kp", self._kp)
         dpg.set_value("Ki", self._ki)
         dpg.set_value("Kd", self._kd)
+        dpg.set_value("Ts", self._ts * 1000)
         # Ajusto los limites horizontales
         dpg.set_axis_limits("position_time_axis", min(self._time), max(self._time))
         dpg.set_axis_limits("pwm_time_axis", min(self._time), max(self._time))
@@ -205,3 +209,14 @@ class PIDPlotter:
 
             self._port.write(f"{data}\n".encode())
         
+    def _send_ts(self, app_data, user_data):
+        """
+        Manda por el puerto el valor del sampling time
+        """
+        if self._port:
+
+            data = {
+                "ts": dpg.get_value("Ts") / 1000
+            }
+
+            self._port.write(f"{data}\n".encode*())
