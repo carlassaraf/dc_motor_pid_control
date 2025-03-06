@@ -55,6 +55,26 @@ int main(void) {
   adc_gpio_init(REF_POT);
 
   while (true) {
+    // Constants from memory or potentiometer?
+    if(gpio_get(OPT_PIN)) {
+      // Read potentiometer scaled values
+      float kp = get_kp();
+      float ki = get_ki();
+      float kd = get_kd();
+      // Update PID constants
+      pid_update_constants(kp, ki, kd);
+    }
 
+    // Get data to plot
+    pid_to_plotter_t d = pid_get_plot_data();
+
+    printf("{\"kp\":%f,\"ki\":%f,\"kd\":%f,\"ts\":%f,\"reference\":%f,\"position\":%f,\"error\":%f,\"pwm\":%f}\n", 
+        d.kp, d.ki, d.kd, d.ts,
+        TO_DEG(d.ref) - 180, 
+        TO_DEG(d.pos) - 180, 
+        TO_DEG(d.err), 
+        TO_PER(d.out)
+    );
+    sleep_ms(200);
   }
 }
