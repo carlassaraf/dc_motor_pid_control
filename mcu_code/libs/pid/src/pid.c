@@ -41,7 +41,7 @@ bool sampling_callback(repeating_timer_t *t) {
     .pos = new_sample,
     .err = curr_err,
     .out = pid_values.out,
-    .ts = pid_config->ts / 1000000
+    .ts = pid_config->ts / 1000
   };
 
   pid_data = d;
@@ -55,7 +55,7 @@ void pid_init(pid_config_t *config) {
   // Copy PID config variables
   pid_config = config;
   // Callback for sampling
-  add_repeating_timer_us(-(pid_config->ts), sampling_callback, NULL, &timer);
+  add_repeating_timer_ms(-(pid_config->ts), sampling_callback, NULL, &timer);
 }
 
 /**
