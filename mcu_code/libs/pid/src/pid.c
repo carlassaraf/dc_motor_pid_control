@@ -6,6 +6,8 @@ static pid_config_t *pid_config;
 static pid_values_t pid_values = {0};
 // Repeating Timer used
 repeating_timer_t timer;
+// Struct with data to plot
+static pid_to_plotter_t pid_data = {0};
 
 /**
  * @brief Called every ts for sampling. Invokes user callback
@@ -29,6 +31,19 @@ bool sampling_callback(repeating_timer_t *t) {
   if(output > pid_config->out_max) { pid_values.out = pid_config->out_max; }
   else if(output < pid_config->out_min) { pid_values.out = pid_config->out_min; }
   else { pid_values.out = output; }
+
+  // Update plot data
+  pid_to_plotter_t d = {
+    .kp = pid_config->kp,
+    .ki = pid_config->ki,
+    .kd = pid_config->kd,
+    .ref = pid_config->ref,
+    .pos = new_sample,
+    .err = curr_err,
+    .out = pid_values.out
+  };
+
+  pid_data = d;
 }
 
 /**
@@ -48,4 +63,12 @@ void pid_init(pid_config_t *config) {
  */
 float pid_get_output(void) {
   return pid_values.out;
+}
+
+/**
+ * @brief Gets struct with the data for plotting interface
+ * @return plot data
+ */
+pid_to_plotter_t pid_get_plot_data(void) {
+  return pid_data;
 }

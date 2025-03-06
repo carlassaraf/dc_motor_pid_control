@@ -19,6 +19,16 @@ typedef struct {
   float out;          // PID output value
 } pid_values_t;
 
+typedef struct {
+  float kp;
+  float ki;
+  float kd;
+  float ref;
+  float pos;
+  float err;
+  float out;
+} pid_to_plotter_t;
+
 // Macros
 
 // Proportional constant from PID config struct
@@ -34,5 +44,6 @@ typedef struct {
 
 void pid_init(pid_config_t *pid_config);
 float pid_get_output(void);
+pid_to_plotter_t pid_get_plot_data(void);
 
 #endif
