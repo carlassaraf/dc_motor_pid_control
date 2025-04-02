@@ -13,6 +13,7 @@ void l298_init(l298_t l298) {
   // Initialize PWM output on enable GPIO
   pwm_config config = pwm_get_default_config();
   // 1MHz base clock and 20 ms of period (50 Hz PWM)
+  gpio_set_function(l298.en_pin, GPIO_FUNC_PWM);
   pwm_config_set_clkdiv(&config, CLK_DIV);
   pwm_config_set_wrap(&config, WRAP);
   pwm_init(pwm_gpio_to_slice_num(l298.en_pin), &config, true);
