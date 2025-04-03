@@ -37,11 +37,6 @@
 
 #define OPT_PIN   6
 
-// Macros to refactor degree values
-
-#define TO_DEG(x)   (x * 360.0 / 4095)
-#define TO_PER(x)   (x * 100.0 / 1000)
-
 // Absolute value
 
 #define ABS(x)      ((x < 0)? -x : x)
