@@ -5,7 +5,7 @@ static pid_config_t *pid_config;
 // Local PID values
 static pid_values_t pid_values = {0};
 // Repeating Timer used
-repeating_timer_t timer;
+repeating_timer_t pid_timer, plotter_timer;
 // Struct with data to plot
 static pid_to_plotter_t pid_data = {0};
 
@@ -50,6 +50,21 @@ bool sampling_callback(repeating_timer_t *t) {
 }
 
 /**
+ * @brief Callback for plotting data
+ */
+bool plotter_callback(repeating_timer_t *t) {
+  // Get data to plot
+  pid_to_plotter_t d = pid_get_plot_data();
+  printf("{\"kp\":%f,\"ki\":%f,\"kd\":%f,\"ts\":%f,\"reference\":%f,\"position\":%f,\"error\":%f,\"pwm\":%f}\n", 
+      d.kp, d.ki, d.kd, d.ts,
+      TO_DEG(d.ref) - 180, 
+      TO_DEG(d.pos) - 180, 
+      TO_DEG(d.err), 
+      TO_PER(d.out)
+  );
+}
+
+/**
  * @brief Initialize PID constants
  * @param config pointer to PID configuration struct
  */
@@ -57,7 +72,16 @@ void pid_init(pid_config_t *config) {
   // Copy PID config variables
   pid_config = config;
   // Callback for sampling
-  add_repeating_timer_ms(-(pid_config->ts), sampling_callback, NULL, &timer);
+  add_repeating_timer_ms(-(pid_config->ts), sampling_callback, NULL, &pid_timer);
+}
+
+/**
+ * @brief Initialize PID plotter
+ * @param t refresh time in ms
+ */
+void pid_plotter_init(uint32_t t) {
+  // Callback for plotting
+  add_repeating_timer_ms(-(t), plotter_callback, NULL, &plotter_timer);
 }
 
 /**
@@ -87,8 +111,8 @@ void pid_update_constants(float kp, float ki, float kd) {
 void pid_update_sampling_time(float ts) {
   pid_config->ts = ts;
   // Update callback
-  cancel_repeating_timer(&timer);
-  add_repeating_timer_ms(-(pid_config->ts), sampling_callback, NULL, &timer);
+  cancel_repeating_timer(&pid_timer);
+  add_repeating_timer_ms(-(pid_config->ts), sampling_callback, NULL, &pid_timer);
 }
 
 /**
