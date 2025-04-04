@@ -12,6 +12,9 @@ class PIDPlotter:
         # Tiempo de muestreo
         self._ts = 0.0
 
+        # Lapso de tiempo de ploteo
+        self._tp = 0.0
+
         # Parametros para graficar
         self._reference_data = [0.0]
         self._position_data = [0.0]
@@ -62,7 +65,7 @@ class PIDPlotter:
                         dpg.add_line_series([], [], label="Referencia", tag="reference_plot")
                         dpg.add_line_series([], [], label="Posición", tag="position_plot")
                         dpg.add_line_series([], [], label="Error", tag="error_plot")
-                        dpg.set_axis_limits("degree_axis", -180.0, 180.0)
+                        dpg.set_axis_limits("degree_axis", -90.0, 90.0)
 
 
             # Vista para el PWM y el Error
@@ -113,10 +116,11 @@ class PIDPlotter:
                         self._reference_data.append(data["reference"])
                         self._error_data.append(data["error"])
                         self._pwm_data.append(data["pwm"])
-                        self._time.append(self._time[-1] + self._ts)
+                        self._time.append(self._time[-1] + self._tp)
                         self._kp = data["kp"]
                         self._ki = data["ki"]
                         self._kd = data["kd"]
+                        self._tp = data["tp"]
                         self._ts = data["ts"]
                         # Veo si me excedi de las muestras
                         if len(self._time) > self._max_points:
