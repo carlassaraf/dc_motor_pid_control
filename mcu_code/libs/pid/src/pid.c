@@ -35,18 +35,14 @@ bool sampling_callback(repeating_timer_t *t) {
   else { pid_values.out = output; }
 
   // Update plot data
-  pid_to_plotter_t d = {
-    .kp = pid_config->kp,
-    .ki = pid_config->ki,
-    .kd = pid_config->kd,
-    .ref = pid_config->ref,
-    .pos = new_sample,
-    .err = curr_err,
-    .out = pid_values.out,
-    .ts = pid_config->ts / 1000
-  };
-
-  pid_data = d;
+  pid_data.kp = pid_config->kp;
+  pid_data.ki = pid_config->ki;
+  pid_data.kd = pid_config->kd;
+  pid_data.ref = pid_config->ref;
+  pid_data.pos = new_sample;
+  pid_data.err = curr_err;
+  pid_data.out = pid_values.out;
+  pid_data.ts = pid_config->ts / 1000;
 }
 
 /**
@@ -55,8 +51,8 @@ bool sampling_callback(repeating_timer_t *t) {
 bool plotter_callback(repeating_timer_t *t) {
   // Get data to plot
   pid_to_plotter_t d = pid_get_plot_data();
-  printf("{\"kp\":%f,\"ki\":%f,\"kd\":%f,\"ts\":%f,\"reference\":%f,\"position\":%f,\"error\":%f,\"pwm\":%f}\n", 
-      d.kp, d.ki, d.kd, d.ts,
+  printf("{\"kp\":%f,\"ki\":%f,\"kd\":%f,\"ts\":%f,\"tp\":%f,\"reference\":%f,\"position\":%f,\"error\":%f,\"pwm\":%f}\n", 
+      d.kp, d.ki, d.kd, d.ts, d.tp,
       TO_DEG(d.ref) - 180, 
       TO_DEG(d.pos) - 180, 
       TO_DEG(d.err), 
@@ -82,6 +78,8 @@ void pid_init(pid_config_t *config) {
 void pid_plotter_init(uint32_t t) {
   // Callback for plotting
   add_repeating_timer_ms(-(t), plotter_callback, NULL, &plotter_timer);
+  // Guardo la info en el plotter data
+  pid_data.tp = t / 1000.0;
 }
 
 /**
