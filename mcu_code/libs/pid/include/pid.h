@@ -16,7 +16,7 @@ typedef struct {
   float kp;           // Proportional constant
   float ki;           // Integral constant
   float kd;           // Derivative constant
-  float ts;           // Sampling time in us
+  float ts;           // Sampling time in ms
   float ref;          // Reference value
   float out_min;      // Min output value from PID
   float out_max;      // Max output value from PID
@@ -43,6 +43,7 @@ typedef struct {
   float err;
   float out;
   float ts;
+  float tp;
 } pid_to_plotter_t;
 
 // Macros
@@ -54,7 +55,7 @@ typedef struct {
 // Derivative constant from PID config struct
 #define KD  (pid_config->kd)
 // Sampling time in us from PID config struct
-#define DT  (pid_config->ts / 1000000)
+#define DT  (pid_config->ts / 1000)
 
 // Function prototipes
 
