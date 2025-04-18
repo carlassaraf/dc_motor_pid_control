@@ -95,11 +95,13 @@ float pid_get_output(void) {
  * @param kp proportional constant
  * @param ki integral constant
  * @param kd derivative constant
+ * @param ref reference value
  */
-void pid_update_constants(float kp, float ki, float kd) {
+void pid_update_constants(float kp, float ki, float kd, float ref) {
   pid_config->kp = kp;
   pid_config->ki = ki;
   pid_config->kd = kd;
+  pid_config->ref = ref;
 }
 
 /**
