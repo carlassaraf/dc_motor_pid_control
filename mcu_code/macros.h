@@ -16,9 +16,11 @@
 
 // PID constant limits
 
-#define KP_MAX    20000.0
+// #define KP_MAX    20000.0
+#define KP_MAX    8.0
 #define KI_MAX    2.0
 #define KD_MAX    1.0
+#define REF_MAX   3250.0
 
 // I2C GPIOs
 
@@ -41,6 +43,12 @@
 
 #define ABS(x)      ((x < 0)? -x : x)
 
+// APP defined PID constants
+
+#define APP_KP  3.5
+#define APP_KI  0.15
+#define APP_KD  0.05
+
 /**
  * @brief Get value from channel
  * @param ch channel to read
@@ -48,7 +56,9 @@
  */
 static inline uint16_t adc_get_value(uint8_t ch) {
   adc_select_input(ch);
-  return adc_read();
+  uint16_t prom = 0;
+  for(uint8_t i = 0; i < 10; i++) { prom += adc_read(); }
+  return (uint16_t) (prom / 10);
 }
 
 /**
@@ -64,7 +74,7 @@ static inline float get_kp(void) {
  * @return 0 to KI_MAX value
  */
 static inline float get_ki(void) {
-  return KI_MAX * adc_get_value(KI_MAX) / 4095.0;
+  return KI_MAX * adc_get_value(KI_CH) / 4095.0;
 }
 
 /**
@@ -72,5 +82,13 @@ static inline float get_ki(void) {
  * @return 0 to KD_MAX value
  */
 static inline float get_kd(void) {
-  return KD_MAX * adc_get_value(KD_MAX) / 4095.0;
+  return KD_MAX * adc_get_value(KD_CH) / 4095.0;
+}
+
+/**
+ * @brief Get REF value from potentiometer
+ * @return 0 to REF_MAX value
+ */
+static inline float get_ref(void) {
+  return REF_MAX * adc_get_value(REF_CH) / 4095.0;
 }
