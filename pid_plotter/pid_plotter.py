@@ -56,6 +56,13 @@ class PIDPlotter:
 
             # Vista para el grafico del PID
             with dpg.child_window(tag="position_window"):
+                # Constantes de PID
+                dpg.add_text("PID constants:", tag="pid_constants")
+                with dpg.group(horizontal=True):
+                    dpg.add_text("Kp: 0.00", tag="Kp")
+                    dpg.add_text("Ki: 0.00", tag="Ki")
+                    dpg.add_text("Kd: 0.00", tag="Kd")
+                    dpg.add_text("Ts [ms]: ", tag="Ts")
                 # Ventana de plot
                 with dpg.plot(label="Posicion y Referencia del Motor", height=-1, width=-1):
                     dpg.add_plot_legend()
@@ -77,22 +84,6 @@ class PIDPlotter:
                     with dpg.plot_axis(dpg.mvYAxis, label="PWM [%]", tag="pwm_axis"):
                         dpg.add_line_series([], [], label="PWM", tag="pwm_plot")
                         dpg.set_axis_limits("pwm_axis", -5, 105)
-                    
-            # Vista para controles de PID
-            with dpg.child_window(tag="pid_window"):
-                with dpg.group(horizontal=True):
-                    # Controles de PID
-                    dpg.add_input_float(label="Kp", tag="Kp")
-                    dpg.add_input_float(label="Ki", tag="Ki")
-                    dpg.add_input_float(label="Kd", tag="Kd")
-                    dpg.add_button(label="Enviar PID", callback=self._send_pid_constants)
-                    dpg.add_input_int(label="Ts [ms]", tag="Ts")
-                    dpg.add_button(label="Cambiar Ts", callback=self._send_ts)
-                    # Ajusto los anchos
-                    dpg.set_item_width("Kp", 200)
-                    dpg.set_item_width("Ki", 200)
-                    dpg.set_item_width("Kd", 200)
-                    dpg.set_item_width("Ts", 200)
 
         dpg.setup_dearpygui()
         dpg.show_viewport()
@@ -151,10 +142,10 @@ class PIDPlotter:
         dpg.set_value("pwm_plot", [self._time, self._pwm_data])
         dpg.set_value("error_plot", [self._time, self._error_data])
         # Actualizo valores de constantes de PID
-        dpg.set_value("Kp", self._kp)
-        dpg.set_value("Ki", self._ki)
-        dpg.set_value("Kd", self._kd)
-        dpg.set_value("Ts", self._ts * 1000)
+        dpg.set_value("Kp", f"Kp: {self._kp:.2f}")
+        dpg.set_value("Ki", f"Ki: {self._ki:.2f}")
+        dpg.set_value("Kd", f"Kd: {self._kd:.2f}")
+        dpg.set_value("Ts", f"Ts [ms]: {(self._ts * 1000):.2f}")
         # Ajusto los limites horizontales
         dpg.set_axis_limits("position_time_axis", min(self._time), max(self._time))
         dpg.set_axis_limits("pwm_time_axis", min(self._time), max(self._time))
@@ -166,13 +157,13 @@ class PIDPlotter:
         # Obtengo las dimensiones del viewport y las configuro para la ventana
         width, height = dpg.get_viewport_client_width() - 22.5, dpg.get_viewport_client_height() - 50
         dpg.set_item_width("serial_window", width)
-        dpg.set_item_height("serial_window", 1.25 * height // 10)
+        dpg.set_item_height("serial_window", height // 10)
         dpg.set_item_width("position_window", width)
-        dpg.set_item_height("position_window", 3.75 * height // 10)
+        dpg.set_item_height("position_window", 3 * height // 5)
         dpg.set_item_width("pwm_window", width)
-        dpg.set_item_height("pwm_window", 3.75 * height // 10)
-        dpg.set_item_width("pid_window", width)
-        dpg.set_item_height("pid_window", height // 10)
+        dpg.set_item_height("pwm_window", 3 * height // 5)
+        # dpg.set_item_width("pid_window", width)
+        # dpg.set_item_height("pid_window", height // 20)
 
     def _refresh_ports(self):
         """
@@ -198,29 +189,3 @@ class PIDPlotter:
                 dpg.set_value(item="serial_status", value=f"Puerto {app_data} conectado con exito!")
             except:
                 dpg.set_value(item="serial_status", value="Error conectando al puerto!")
-
-    def _send_pid_constants(self, app_data, user_data):
-        """
-        Manda por el puerto las constantes para el PID
-        """
-        if self._port:
-
-            data = {
-                "kp": dpg.get_value("Kp"),
-                "ki": dpg.get_value("Ki"),
-                "kd": dpg.get_value("Kd")
-            }
-
-            self._port.write(f"{data}\n".encode())
-        
-    def _send_ts(self, app_data, user_data):
-        """
-        Manda por el puerto el valor del sampling time
-        """
-        if self._port:
-
-            data = {
-                "ts": dpg.get_value("Ts") / 1000
-            }
-
-            self._port.write(f"{data}\n".encode*())
