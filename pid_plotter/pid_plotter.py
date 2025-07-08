@@ -54,6 +54,19 @@ class PIDPlotter:
 
                 dpg.add_text("", tag="serial_status")
 
+            # Vista para configurar las constantes de PID
+            with dpg.child_window(tag="pid_tuning_window"):
+                with dpg.group(horizontal=True):
+                    with dpg.group():
+                        dpg.add_text("Ajuste manual de PID:")
+                        dpg.add_slider_float(label="Kp", tag="slider_kp", default_value=0.0, min_value=0.0, max_value=10.0, width=600)
+                        dpg.add_slider_float(label="Ki", tag="slider_ki", default_value=0.0, min_value=0.0, max_value=2.0, width=600)
+                        dpg.add_slider_float(label="Kd", tag="slider_kd", default_value=0.0, min_value=0.0, max_value=1.0, width=600)
+
+                    with dpg.group():
+                        dpg.add_spacer(height=20)
+                        dpg.add_button(label="Enviar PID", callback=self._send_pid_callback, width=200, height=50)
+
             # Vista para el grafico del PID
             with dpg.child_window(tag="position_window"):
                 # Constantes de PID
@@ -95,40 +108,46 @@ class PIDPlotter:
         Corre la interfaz en loop.
         """
         while dpg.is_dearpygui_running():
-            # Verifico los datos del puerto serie
-            if self._port:
-                try:
-                    if self._port.in_waiting > 0:
-                        # Leo y decodifico el JSON
-                        data = self._port.readline().decode().strip()
-                        data = json.loads(data)
-                        # Veo si hay datos para actualizar
-                        self._position_data.append(data["position"])
-                        self._reference_data.append(data["reference"])
-                        self._error_data.append(data["error"])
-                        self._pwm_data.append(data["pwm"])
-                        self._time.append(self._time[-1] + self._tp)
-                        self._kp = data["kp"]
-                        self._ki = data["ki"]
-                        self._kd = data["kd"]
-                        self._tp = data["tp"]
-                        self._ts = data["ts"]
-                        # Veo si me excedi de las muestras
-                        if len(self._time) > self._max_points:
-                            # Elimino el primer punto
-                            self._position_data = self._position_data[1:]
-                            self._reference_data = self._reference_data[1:]
-                            self._error_data = self._error_data[1:]
-                            self._pwm_data = self._pwm_data[1:]
-                            self._time = self._time[1:]
-                
-                except:
-                    pass
-            
+
             # Actualizo con los puntos que tengo
             self._update_plot()
             self._refresh_ports()
             dpg.render_dearpygui_frame()
+
+            # Verifico los datos del puerto serie
+            if not self._port:
+                continue
+
+            try:
+                # Si no hay nada en el puerto, continuo
+                if not self._port.in_waiting:
+                    continue
+
+                # Leo y decodifico el JSON
+                data = self._port.readline().decode().strip()
+                data = json.loads(data)
+                # Veo si hay datos para actualizar
+                self._position_data.append(data["position"])
+                self._reference_data.append(data["reference"])
+                self._error_data.append(data["error"])
+                self._pwm_data.append(data["pwm"])
+                self._time.append(self._time[-1] + self._tp)
+                self._kp = data["kp"]
+                self._ki = data["ki"]
+                self._kd = data["kd"]
+                self._tp = data["tp"]
+                self._ts = data["ts"]
+                # Veo si me excedi de las muestras
+                if len(self._time) > self._max_points:
+                    # Elimino el primer punto
+                    self._position_data = self._position_data[1:]
+                    self._reference_data = self._reference_data[1:]
+                    self._error_data = self._error_data[1:]
+                    self._pwm_data = self._pwm_data[1:]
+                    self._time = self._time[1:]
+            
+            except:
+                pass
 
         dpg.destroy_context()
 
@@ -162,8 +181,8 @@ class PIDPlotter:
         dpg.set_item_height("position_window", 3 * height // 5)
         dpg.set_item_width("pwm_window", width)
         dpg.set_item_height("pwm_window", 3 * height // 5)
-        # dpg.set_item_width("pid_window", width)
-        # dpg.set_item_height("pid_window", height // 20)
+        dpg.set_item_width("pid_tuning_window", width)
+        dpg.set_item_height("pid_tuning_window", height // 8)
 
     def _refresh_ports(self):
         """
@@ -189,3 +208,23 @@ class PIDPlotter:
                 dpg.set_value(item="serial_status", value=f"Puerto {app_data} conectado con exito!")
             except:
                 dpg.set_value(item="serial_status", value="Error conectando al puerto!")
+
+    def _send_pid_callback(self, sender, app_data):
+        """
+        Callback cuando cambia algún slider de Kp, Ki o Kd.
+        """
+        kp = dpg.get_value("slider_kp")
+        ki = dpg.get_value("slider_ki")
+        kd = dpg.get_value("slider_kd")
+
+        # Enviá por serial los nuevos valores si el puerto está activo
+        if self._port and self._port.is_open:
+            try:
+                payload = {
+                    "kp": kp,
+                    "ki": ki,
+                    "kd": kd
+                }
+                self._port.write((json.dumps(payload) + "\n").encode())
+            except Exception as e:
+                dpg.set_value(item="serial_status", value=f"Error al enviar valores PID: {e}")
