@@ -52,14 +52,26 @@ pico_enable_stdio_usb(mcu_code 1)
 add_subdirectory(libs/l298)
 add_subdirectory(libs/pid)
 add_subdirectory(libs/as5600)
+add_subdirectory(libs/freertos)
 
-# Add the standard library to the build
-target_link_libraries(mcu_code
+add_library(app_tasks STATIC app_tasks.c cJSON.c cJSON.h)
+target_link_libraries(app_tasks
     pico_stdlib
     hardware_adc
     l298
     pid
     as5600
+    freertos
+)
+
+# Add the standard library to the build
+target_link_libraries(mcu_code
+    pico_stdlib
+    app_tasks
+    l298
+    pid
+    as5600
+    freertos
 )
 
 # Add the standard include files to the build
