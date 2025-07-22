@@ -59,9 +59,17 @@ class PIDPlotter:
                 with dpg.group(horizontal=True):
                     with dpg.group():
                         dpg.add_text("Ajuste manual de PID:")
-                        dpg.add_slider_float(label="Kp", tag="slider_kp", default_value=0.0, min_value=0.0, max_value=10.0, width=600)
-                        dpg.add_slider_float(label="Ki", tag="slider_ki", default_value=0.0, min_value=0.0, max_value=2.0, width=600)
-                        dpg.add_slider_float(label="Kd", tag="slider_kd", default_value=0.0, min_value=0.0, max_value=1.0, width=600)
+                        dpg.add_slider_float(label="Kp", tag="slider_kp", default_value=0.0, min_value=0.0, max_value=500.0, width=600, callback=self._slider_callback)
+                        dpg.add_slider_float(label="Ki", tag="slider_ki", default_value=0.0, min_value=0.0, max_value=2.0, width=600, callback=self._slider_callback)
+                        dpg.add_slider_float(label="Kd", tag="slider_kd", default_value=0.0, min_value=0.0, max_value=1.0, width=600, callback=self._slider_callback)
+                        dpg.add_slider_float(label="Ref", tag="slider_ref", default_value=0.0, min_value=-90.0, max_value=90.0, width=600, callback=self._slider_callback)
+
+                    with dpg.group():
+                        dpg.add_spacer(height=20)
+                        dpg.add_input_float(tag="input_kp", width=300)
+                        dpg.add_input_float(tag="input_ki", width=300)
+                        dpg.add_input_float(tag="input_kd", width=300)
+                        dpg.add_input_float(tag="input_ref", width=300)
 
                     with dpg.group():
                         dpg.add_spacer(height=20)
@@ -125,10 +133,11 @@ class PIDPlotter:
 
                 # Leo y decodifico el JSON
                 data = self._port.readline().decode().strip()
+                print(data)
                 data = json.loads(data)
                 # Veo si hay datos para actualizar
-                self._position_data.append(data["position"])
-                self._reference_data.append(data["reference"])
+                self._position_data.append(data["position"] - 90.0)
+                self._reference_data.append(data["ref"] - 90.0)
                 self._error_data.append(data["error"])
                 self._pwm_data.append(data["pwm"])
                 self._time.append(self._time[-1] + self._tp)
@@ -137,6 +146,7 @@ class PIDPlotter:
                 self._kd = data["kd"]
                 self._tp = data["tp"]
                 self._ts = data["ts"]
+
                 # Veo si me excedi de las muestras
                 if len(self._time) > self._max_points:
                     # Elimino el primer punto
@@ -146,8 +156,8 @@ class PIDPlotter:
                     self._pwm_data = self._pwm_data[1:]
                     self._time = self._time[1:]
             
-            except:
-                pass
+            except Exception as e:
+                print(f"[Serial Error] {e}")
 
         dpg.destroy_context()
 
@@ -182,7 +192,7 @@ class PIDPlotter:
         dpg.set_item_width("pwm_window", width)
         dpg.set_item_height("pwm_window", 3 * height // 5)
         dpg.set_item_width("pid_tuning_window", width)
-        dpg.set_item_height("pid_tuning_window", height // 8)
+        dpg.set_item_height("pid_tuning_window", height // 5)
 
     def _refresh_ports(self):
         """
@@ -209,13 +219,27 @@ class PIDPlotter:
             except:
                 dpg.set_value(item="serial_status", value="Error conectando al puerto!")
 
+    def _slider_callback(self, sender, app_data):
+        """
+        Callback para actualizar los inputs con el valor del slider
+        """
+        if sender == "slider_kp":
+            dpg.set_value("input_kp", dpg.get_value("slider_kp"))
+        elif sender == "slider_ki":
+            dpg.set_value("input_ki", dpg.get_value("slider_ki"))
+        elif sender == "slider_kd":
+            dpg.set_value("input_kd", dpg.get_value("slider_kd"))
+        elif sender == "slider_ref":
+            dpg.set_value("input_ref", dpg.get_value("slider_ref"))
+
     def _send_pid_callback(self, sender, app_data):
         """
         Callback cuando cambia algún slider de Kp, Ki o Kd.
         """
-        kp = dpg.get_value("slider_kp")
-        ki = dpg.get_value("slider_ki")
-        kd = dpg.get_value("slider_kd")
+        kp = dpg.get_value("input_kp")
+        ki = dpg.get_value("input_ki")
+        kd = dpg.get_value("input_kd")
+        ref = dpg.get_value("input_ref")
 
         # Enviá por serial los nuevos valores si el puerto está activo
         if self._port and self._port.is_open:
@@ -223,8 +247,11 @@ class PIDPlotter:
                 payload = {
                     "kp": kp,
                     "ki": ki,
-                    "kd": kd
+                    "kd": kd,
+                    "ref": ref + 90.0
                 }
-                self._port.write((json.dumps(payload) + "\n").encode())
+
+                data = json.dumps(payload).replace(" ", "")
+                self._port.write((data + "\n").encode())
             except Exception as e:
                 dpg.set_value(item="serial_status", value=f"Error al enviar valores PID: {e}")
