@@ -17,9 +17,8 @@
 
 // PID constant limits
 
-// #define KP_MAX    20000.0
-#define KP_MAX    8.0
-#define KI_MAX    2.0
+#define KP_MAX    100.0
+#define KI_MAX    4.0
 #define KD_MAX    1.0
 #define REF_MAX   3250.0
 
@@ -46,9 +45,9 @@
 
 // APP defined PID constants
 
-#define APP_KP  3.5
-#define APP_KI  0.15
-#define APP_KD  0.05
+#define APP_KP  38.0
+#define APP_KI  1
+#define APP_KD  0.1
 
 /**
  * @brief Get value from channel
