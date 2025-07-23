@@ -25,7 +25,7 @@ int main(void) {
 
   // Timing constants
   uint32_t pid_sampling_interval_ms = 1;
-  uint32_t ploting_time_interval_ms = 100;
+  uint32_t plotting_time_interval_ms = 100;
 
   // Motor driver initialization
   l298_t l298 = {
@@ -47,7 +47,7 @@ int main(void) {
     .out_max = 20000,
     .cb = sampling
   });
-  pid_plotter_init(ploting_time_interval_ms);
+  pid_plotter_init(plotting_time_interval_ms);
   // Motor driver initialization
   l298_init(l298);
   // PID constant selector
@@ -68,7 +68,7 @@ int main(void) {
   xTaskCreate(task_pid_run, "PID Run", tskPID_RUN_STACK, (void*) &pid_sampling_interval_ms, tskPID_RUN_PRIO, NULL);
   xTaskCreate(task_pid_constants, "PID Const", tskPID_CONS_STACK, NULL, tskPID_CONS_PRIO, NULL);
   xTaskCreate(task_pid_output, "PID Out", tskPID_OUT_STACK, (void*) &l298, tskPID_OUT_PRIO, NULL);
-  xTaskCreate(task_plotter, "Plotter", tskPLOTTER_STACK, (void*) &ploting_time_interval_ms, tskPLOTTER_PRIO, NULL);
+  xTaskCreate(task_plotter, "Plotter", tskPLOTTER_STACK, (void*) &plotting_time_interval_ms, tskPLOTTER_PRIO, NULL);
 
   vTaskStartScheduler();
   while (true);
