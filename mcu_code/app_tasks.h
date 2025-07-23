@@ -1,5 +1,9 @@
+#ifndef _APP_TASKS_H_
+#define _APP_TASKS_H_
+
 #include "FreeRTOS.h"
 #include "task.h"
+#include "queue.h"
 
 #define tskPID_RUN_STACK  (2 * configMINIMAL_STACK_SIZE)
 #define tskPID_CONS_STACK (4 * configMINIMAL_STACK_SIZE)
@@ -15,3 +19,5 @@ void task_pid_run(void *params);
 void task_plotter(void *params);
 void task_pid_constants(void *params);
 void task_pid_output(void *params);
+
+#endif

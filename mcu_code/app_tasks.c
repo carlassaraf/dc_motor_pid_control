@@ -2,6 +2,7 @@
 
 #include "l298.h"
 #include "pid.h"
+#include "plotter.h"
 #include "as5600.h"
 #include "macros.h"
 
@@ -9,15 +10,21 @@
 
 #include "cJSON.h"
 
+// Queue to share PID data
+QueueHandle_t pid_queue;
+
 /**
  * @brief Handles PID algorithm
  */
 void task_pid_run(void *params) {
   // Time interval to run PID algorithm
   uint32_t interval_ms = *((uint32_t*)params);
+  // PID data
+  pid_t pid = {0};
 
   while(1) {
-    pid_run();
+    pid = pid_run();
+    xQueueOverwrite(pid_queue, &pid);
     vTaskDelay(pdMS_TO_TICKS(interval_ms));
   }
 }
@@ -29,9 +36,23 @@ void task_pid_run(void *params) {
 void task_plotter(void *params) {
   // Time interval to run PID algorithm
   uint32_t interval_ms = *((uint32_t*)params);
+  // PID data
+  pid_t pid;
 
   while(1) {
-    plotter_run();
+    xQueuePeek(pid_queue, &pid, portMAX_DELAY);
+    plot_data_t data = {
+      .kp = pid.constants.kp,
+      .ki = pid.constants.ki,
+      .kd = pid.constants.kd,
+      .err = pid.error.curr,
+      .out = TO_PER(pid.output.curr),
+      .pos = pid.input.curr,
+      .ref = pid.input.ref,
+      .tp = interval_ms,
+      .ts = pid.constants.ts
+    };
+    plotter_plot(data);
     vTaskDelay(pdMS_TO_TICKS(interval_ms));
   }
 }

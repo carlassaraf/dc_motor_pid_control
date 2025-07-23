@@ -4,6 +4,7 @@
 
 #include "l298.h"
 #include "pid.h"
+#include "plotter.h"
 #include "as5600.h"
 #include "macros.h"
 #include "app_tasks.h"
@@ -15,6 +16,8 @@ float sampling(void) {
   return as5600_get_raw_angle();
 }
 
+// External queue for sharing PID data
+extern QueueHandle_t pid_queue;
 
 /**
  * @brief Programa principal
@@ -24,8 +27,8 @@ int main(void) {
   stdio_init_all();
 
   // Timing constants
-  uint32_t pid_sampling_interval_ms = 1;
-  uint32_t plotting_time_interval_ms = 100;
+  const uint32_t pid_sampling_interval_ms = 1;
+  const uint32_t plotting_time_interval_ms = 100;
 
   // Motor driver initialization
   l298_t l298 = {
@@ -37,17 +40,14 @@ int main(void) {
   // Magnetic encoder initialization
   as5600_init(i2c0, SDA_PIN, SCL_PIN);
   // PID initialization
-  pid_init(&(pid_config_t){
-    .kp = APP_KP,
-    .ki = APP_KI,
-    .kd = APP_KD,
-    .ts = pid_sampling_interval_ms,
-    .ref = 0.0,
-    .out_min = -20000,
-    .out_max = 20000,
-    .cb = sampling
-  });
-  pid_plotter_init(plotting_time_interval_ms);
+  pid_constants_t pid_constants = { .kp = APP_KP, .ki = APP_KI, .kd = APP_KD, .ts = pid_sampling_interval_ms };
+  pid_input_t pid_inputs = { .ref = 0.0, .cb = sampling, .curr = 0.0 };
+  pid_output_t pid_outputs = { .min = APP_MIN_OUTPUT, .max = APP_MAX_OUTPUT, .curr = 0.0 };
+  pid_error_t pid_errors = {0};
+  pid_t pid = { .constants = pid_constants, .input = pid_inputs, .output = pid_outputs, .error = pid_errors };
+  pid_init(&pid);  
+  // Plotter initialization
+  pid_plotter_init();
   // Motor driver initialization
   l298_init(l298);
   // PID constant selector
@@ -64,6 +64,11 @@ int main(void) {
   adc_gpio_init(KI_POT);
   adc_gpio_init(KD_POT);
   adc_gpio_init(REF_POT);
+
+  // Queue initialization
+  pid_queue = xQueueCreate(1, sizeof(pid_t));
+
+  // Task creation
 
   xTaskCreate(task_pid_run, "PID Run", tskPID_RUN_STACK, (void*) &pid_sampling_interval_ms, tskPID_RUN_PRIO, NULL);
   xTaskCreate(task_pid_constants, "PID Const", tskPID_CONS_STACK, NULL, tskPID_CONS_PRIO, NULL);
