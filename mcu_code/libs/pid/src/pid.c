@@ -15,6 +15,7 @@ static pid_to_plotter_t pid_data = {0};
  */
 void pid_init(pid_config_t *config) {
   // Copy PID config variables
+  config->ref += 90.0;
   pid_config = config;
 }
 
