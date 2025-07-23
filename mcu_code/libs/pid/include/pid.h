@@ -6,7 +6,7 @@
 
 // Macros to refactor degree values
 
-#define TO_DEG(x)   (x * 360.0 / 4095)
+#define TO_DEG(x)   (180.0 * (x - 900) / 2000)
 #define TO_PER(x)   (x * 100.0 / 1000)
 
 /**
@@ -63,7 +63,8 @@ void pid_init(pid_config_t *pid_config);
 void pid_plotter_init(uint32_t t);
 float pid_get_output(void);
 void pid_update_constants(float kp, float ki, float kd, float ref);
-void pid_update_sampling_time(float ts);
 pid_to_plotter_t pid_get_plot_data(void);
+void pid_run(void);
+void plotter_run(void);
 
 #endif
