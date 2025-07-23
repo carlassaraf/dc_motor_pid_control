@@ -1,3 +1,6 @@
+#ifndef _MACROS_H_
+#define _MACROS_H_
+
 #include "hardware/adc.h"
 // Macros and labels for pins and expressions used
 
@@ -49,6 +52,9 @@
 #define APP_KI  1
 #define APP_KD  0.1
 
+#define APP_MIN_OUTPUT  -20000
+#define APP_MAX_OUTPUT  20000
+
 /**
  * @brief Get value from channel
  * @param ch channel to read
@@ -92,3 +98,5 @@ static inline float get_kd(void) {
 static inline float get_ref(void) {
   return REF_MAX * (4095.0 - adc_get_value(REF_CH)) / 4095.0;
 }
+
+#endif
