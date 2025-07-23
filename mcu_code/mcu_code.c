@@ -23,6 +23,10 @@ int main(void) {
 
   stdio_init_all();
 
+  // Timing constants
+  uint32_t pid_sampling_interval_ms = 1;
+  uint32_t ploting_time_interval_ms = 100;
+
   // Motor driver initialization
   l298_t l298 = {
     .dir1_pin = 12,
@@ -37,13 +41,13 @@ int main(void) {
     .kp = APP_KP,
     .ki = APP_KI,
     .kd = APP_KD,
-    .ts = 1,
-    .ref = 90.0,
+    .ts = pid_sampling_interval_ms,
+    .ref = 0.0,
     .out_min = -20000,
     .out_max = 20000,
     .cb = sampling
   });
-  pid_plotter_init(100);
+  pid_plotter_init(ploting_time_interval_ms);
   // Motor driver initialization
   l298_init(l298);
   // PID constant selector
@@ -61,10 +65,10 @@ int main(void) {
   adc_gpio_init(KD_POT);
   adc_gpio_init(REF_POT);
 
-  xTaskCreate(task_pid_run, "PID Run", tskPID_RUN_STACK, NULL, tskPID_RUN_PRIO, NULL);
+  xTaskCreate(task_pid_run, "PID Run", tskPID_RUN_STACK, (void*) &pid_sampling_interval_ms, tskPID_RUN_PRIO, NULL);
   xTaskCreate(task_pid_constants, "PID Const", tskPID_CONS_STACK, NULL, tskPID_CONS_PRIO, NULL);
   xTaskCreate(task_pid_output, "PID Out", tskPID_OUT_STACK, (void*) &l298, tskPID_OUT_PRIO, NULL);
-  xTaskCreate(task_plotter, "Plotter", tskPLOTTER_STACK, NULL, tskPLOTTER_PRIO, NULL);
+  xTaskCreate(task_plotter, "Plotter", tskPLOTTER_STACK, (void*) &ploting_time_interval_ms, tskPLOTTER_PRIO, NULL);
 
   vTaskStartScheduler();
   while (true);
