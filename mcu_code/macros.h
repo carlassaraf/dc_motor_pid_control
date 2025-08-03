@@ -23,7 +23,7 @@
 #define KP_MAX    100.0
 #define KI_MAX    4.0
 #define KD_MAX    1.0
-#define REF_MAX   3250.0
+#define REF_MAX   180
 
 // I2C GPIOs
 
@@ -63,7 +63,7 @@
 static inline uint16_t adc_get_value(uint8_t ch) {
   adc_select_input(ch);
   uint16_t prom = 0;
-  for(uint8_t i = 0; i < 10; i++) { prom += adc_read(); }
+  for(uint8_t i = 0; i < 10; i++) { prom += 4095 - adc_read(); }
   return (uint16_t) (prom / 10.0);
 }
 
@@ -96,7 +96,7 @@ static inline float get_kd(void) {
  * @return 0 to REF_MAX value
  */
 static inline float get_ref(void) {
-  return REF_MAX * (4095.0 - adc_get_value(REF_CH)) / 4095.0;
+  return REF_MAX * (4095 - adc_get_value(REF_CH)) / 4095.0;
 }
 
 #endif
