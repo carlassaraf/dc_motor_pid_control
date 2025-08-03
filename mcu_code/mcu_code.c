@@ -17,7 +17,9 @@ float sampling(void) {
 }
 
 // External queue for sharing PID data
-extern QueueHandle_t pid_queue;
+extern QueueHandle_t pid_queue, ks_queue;
+// Handlers para tareas
+extern TaskHandle_t adc_handler, gui_handler;
 
 /**
  * @brief Programa principal
@@ -58,20 +60,17 @@ int main(void) {
   gpio_init(16);
   gpio_set_dir(16, true);
   gpio_put(16, false);
-  // Initialize ADC and channels
-  adc_init();
-  adc_gpio_init(KP_POT);
-  adc_gpio_init(KI_POT);
-  adc_gpio_init(KD_POT);
-  adc_gpio_init(REF_POT);
 
   // Queue initialization
   pid_queue = xQueueCreate(1, sizeof(pid_t));
+  ks_queue = xQueueCreate(1, sizeof(json_shareable_t));
 
   // Task creation
 
   xTaskCreate(task_pid_run, "PID Run", tskPID_RUN_STACK, (void*) &pid_sampling_interval_ms, tskPID_RUN_PRIO, NULL);
-  xTaskCreate(task_pid_constants, "PID Const", tskPID_CONS_STACK, NULL, tskPID_CONS_PRIO, NULL);
+  xTaskCreate(task_usb, "USB Handler", tskUSB_STACK, NULL, tskUSB_PRIO, NULL);
+  xTaskCreate(task_adc, "ADC", tskADC_STACK, NULL, tskADC_PRIO, &adc_handler);
+  xTaskCreate(task_gui, "GUI", tskGUI_STACK, NULL, tskGUI_PRIO, &gui_handler);
   xTaskCreate(task_pid_output, "PID Out", tskPID_OUT_STACK, (void*) &l298, tskPID_OUT_PRIO, NULL);
   xTaskCreate(task_plotter, "Plotter", tskPLOTTER_STACK, (void*) &plotting_time_interval_ms, tskPLOTTER_PRIO, NULL);
 
