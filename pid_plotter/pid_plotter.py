@@ -74,6 +74,8 @@ class PIDPlotter:
                     with dpg.group():
                         dpg.add_spacer(height=20)
                         dpg.add_button(label="Enviar PID", callback=self._send_pid_callback, width=200, height=50)
+                        dpg.add_spacer(height=15)
+                        dpg.add_checkbox(label="Constantes desde GUI", tag="pid_src", callback=self._change_pid_src_callback)
 
             # Vista para el grafico del PID
             with dpg.child_window(tag="position_window"):
@@ -249,6 +251,19 @@ class PIDPlotter:
                     "ki": ki,
                     "kd": kd,
                     "ref": ref + 90.0
+                }
+
+                data = json.dumps(payload).replace(" ", "")
+                self._port.write((data + "\n").encode())
+            except Exception as e:
+                dpg.set_value(item="serial_status", value=f"Error al enviar valores PID: {e}")
+
+    def _change_pid_src_callback(self, sender, app_data):
+
+        if self._port and self._port.is_open:
+            try:
+                payload = {
+                    "gui": app_data
                 }
 
                 data = json.dumps(payload).replace(" ", "")
