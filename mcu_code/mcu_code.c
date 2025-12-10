@@ -13,7 +13,8 @@
  * @brief Callback for PID sampling
  */
 float sampling(void) {
-  return as5600_get_raw_angle();
+  float deg = 360.0 * (4095 - as5600_get_raw_angle()) / 4095.0;
+  return (deg > 180)? deg - 360 : deg;
 }
 
 // External queue for sharing PID data
