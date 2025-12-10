@@ -34,9 +34,9 @@
 
 // L298 GPIOs
 
-#define DIR1_PIN  16
-#define DIR2_PIN  17
-#define PWM_PIN   18
+#define DIR1_PIN  12
+#define DIR2_PIN  13
+#define PWM_PIN   14
 
 // GPIO for switch
 
@@ -96,7 +96,7 @@ static inline float get_kd(void) {
  * @return 0 to REF_MAX value
  */
 static inline float get_ref(void) {
-  return REF_MAX * (4095 - adc_get_value(REF_CH)) / 4095.0;
+  return REF_MAX * (adc_get_value(REF_CH)) / 4095.0 - 90;
 }
 
 #endif
