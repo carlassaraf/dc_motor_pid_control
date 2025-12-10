@@ -6,7 +6,6 @@
 
 // Macros to refactor degree values
 
-#define TO_DEG(x)   (180.0 * (x - 900) / 2000)
 #define TO_PER(x)   (x * 100.0 / 1000)
 
 /**

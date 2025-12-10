@@ -43,7 +43,7 @@ void pid_update_constants(float kp, float ki, float kd, float ref) {
  */
 pid_t pid_run(void) {
   // Get new sample
-  s_pid->input.curr = TO_DEG(s_pid->input.cb());
+  s_pid->input.curr = s_pid->input.cb();
   // Calculate error
   s_pid->error.curr = s_pid->input.ref - s_pid->input.curr;
   // Add error for integral
