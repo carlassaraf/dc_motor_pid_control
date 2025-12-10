@@ -139,7 +139,7 @@ void task_adc(void *params) {
   adc_gpio_init(REF_POT);
 
   while(1) {
-    if(gpio_get(OPT_PIN)) {
+    if(!gpio_get(OPT_PIN)) {
       pid_update_constants(get_kp(), get_ki(), get_kd(), get_ref());
     }
     else {
@@ -158,7 +158,7 @@ void task_gui(void *params) {
   vTaskSuspend(NULL);
   while(1) {
     xQueuePeek(ks_queue, &data, portMAX_DELAY);
-    if(gpio_get(OPT_PIN)) {
+    if(!gpio_get(OPT_PIN)) {
       pid_update_constants(data.kp, data.ki, data.kd, data.ref);
     }
     else {
