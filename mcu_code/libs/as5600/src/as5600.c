@@ -31,5 +31,5 @@ uint16_t as5600_get_raw_angle(void) {
   // Read raw angle from register
   i2c_write_blocking(_i2c, AS5600_DEFAULT_ADDRESS, &reg, 1, true);
   i2c_read_blocking(_i2c, AS5600_DEFAULT_ADDRESS, buff, 2, false);
-  return (buff[0] << 8 | buff[1]);
+  return ((buff[0] & 0xf) << 8 | buff[1]);
 }
