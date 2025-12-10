@@ -138,8 +138,8 @@ class PIDPlotter:
                 print(data)
                 data = json.loads(data)
                 # Veo si hay datos para actualizar
-                self._position_data.append(data["position"] - 90.0)
-                self._reference_data.append(data["ref"] - 90.0)
+                self._position_data.append(data["position"])
+                self._reference_data.append(data["ref"])
                 self._error_data.append(data["error"])
                 self._pwm_data.append(data["pwm"])
                 self._time.append(self._time[-1] + self._tp)
@@ -250,7 +250,7 @@ class PIDPlotter:
                     "kp": kp,
                     "ki": ki,
                     "kd": kd,
-                    "ref": ref + 90.0
+                    "ref": ref
                 }
 
                 data = json.dumps(payload).replace(" ", "")
